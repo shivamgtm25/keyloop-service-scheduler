@@ -1,0 +1,64 @@
+### Service Scheduler API - runnable examples (Visual Studio / VS Code REST Client)
+@host = http://localhost:5076
+
+### Reference data
+GET {{host}}/api/dealerships
+
+###
+GET {{host}}/api/service-types
+
+###
+GET {{host}}/api/customers
+
+### Availability: bookable Full Service slots at London on a given local date
+GET {{host}}/api/dealerships/1/availability?serviceTypeId=4&date=2026-12-01
+
+### Book an appointment (201 Created). Re-sending with the same Idempotency-Key returns 200 + the original.
+POST {{host}}/api/appointments
+Content-Type: application/json
+Idempotency-Key: demo-0001
+
+{
+  "customerId": 1,
+  "vehicleId": 1,
+  "dealershipId": 1,
+  "serviceTypeId": 4,
+  "startTime": "2026-12-01T09:00:00Z"
+}
+
+### Overlapping Full Service for another customer -> 409 no_technician_available
+### (Tech C is the only Full Service technician at London)
+POST {{host}}/api/appointments
+Content-Type: application/json
+
+{
+  "customerId": 2,
+  "vehicleId": 2,
+  "dealershipId": 1,
+  "serviceTypeId": 4,
+  "startTime": "2026-12-01T10:00:00Z"
+}
+
+### Runs past closing time -> 422 outside_opening_hours
+POST {{host}}/api/appointments
+Content-Type: application/json
+
+{
+  "customerId": 2,
+  "vehicleId": 2,
+  "dealershipId": 1,
+  "serviceTypeId": 4,
+  "startTime": "2026-12-01T16:00:00Z"
+}
+
+### Get / list / cancel
+GET {{host}}/api/appointments/1
+
+###
+GET {{host}}/api/appointments?dealershipId=1
+
+###
+DELETE {{host}}/api/appointments/1
+
+### Health
+GET {{host}}/health
